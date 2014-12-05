@@ -35,22 +35,27 @@ public :
 	int first_line;
 	int last_line;
 	PNode(){}
-	PNode(string name) : name(name){}
+	PNode(string name, int fline) : name(name), first_line(fline){}
 };
 
-void find_node(const string& line, string& node, bool& isgroup, bool& search_name, vector<string>& list_node){
-	istringstream iss(line);
-	Tokken tokken;
-	iss >> tokken.first_word >> tokken.second_word;
-	if(!isgroup){
-		if(tokken.second_word == "{" && tokken.first_word != "Group"){
-			node = tokken.first_word;
-			list_node.push_back(node);
+
+void find_node(Tokken& tokken, bool& isgroup, bool& search_name,
+		vector<PNode>& list_node, int& n_line){
+	if(tokken.second_word == "{" && tokken.first_word != "Group"){
+		PNode node = PNode(tokken.first_word, n_line);
+		list_node.push_back(node);
+	}
+	if(tokken.first_word == "}"){
+		if(list_node.empty()){
+			return;
 		}
-		if(tokken.first_word == "Group"){
-			isgroup = true;
-			search_name = true;
+		else{
+			list_node[list_node.size()-1].last_line = n_line;
 		}
+	}
+	if(tokken.first_word == "Group"){
+		isgroup = true;
+		search_name = true;
 	}
 	if(tokken.first_word == "end_group"){
 		isgroup = false;
@@ -58,6 +63,14 @@ void find_node(const string& line, string& node, bool& isgroup, bool& search_nam
 	}
 }
 
+Tokken get_tokken(const string& line){
+	istringstream iss(line);
+	Tokken tokken;
+	iss >> tokken.first_word >> tokken.second_word;
+	return tokken;
+}
+
+/*
 void work_group(const string& line, bool& search_name, string& name){
 	istringstream iss(line);
 	Tokken tokken;
@@ -67,32 +80,37 @@ void work_group(const string& line, bool& search_name, string& name){
 		name = tokken.second_word;
 	}
 }
+*/
 
 int main() {
 
-	string node;
 	ifstream infile;
 	infile.open("/u/colinl/testnk.nk");
 	string line;
+
 	bool isgroup = false;
 	bool search_name;
+
 	string name;
 	vector<string> list_name;
-	vector<string> list_node;
+	vector<PNode> list_node;
+	int n_line = 1;
 
 	while (getline(infile, line))
 	{
-			find_node(line, node, isgroup, search_name, list_node);
-			if(isgroup){
+		Tokken tokken = get_tokken(line);
+		find_node(tokken, isgroup, search_name, list_node, n_line);
+		n_line++;
+/*			if(isgroup){
 				work_group(line, search_name, name);
 				list_name.push_back(name);
-			}
+			}*/
 	}
-	set<string> set_name(list_name.begin(), list_name.end());
+/*	set<string> set_name(list_name.begin(), list_name.end());
 	BOOST_FOREACH(string element, set_name) {
 		list_node.push_back(element);
-	}
+	}*/
 	for(int i; i<int(list_node.size()); i++){
-		cout<<list_node[i]<<endl;
+		cout<<list_node[i].name<<" "<<list_node[i].first_line<<" "<<list_node[i].last_line<<endl;
 	}
 }
