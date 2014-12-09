@@ -110,53 +110,60 @@ vector<PNode> parse_nk(const char* file){
 
 void copy_line(const char* in_file, const char* out_file, vector<PNode> list_node)
 {
-	for(int i; i<int(list_node.size()); i++){
+
+	int offset_line = 0;
+	for(int i = 0; i<int(list_node.size()); i++){
+
 		ifstream in_data;
 		in_data.open(in_file);
 		ofstream out_data;
 		out_data.open(out_file);
+
 		string line;
 		int n_line = 1;
 		while (getline(in_data, line))
 		{
-			if(n_line < list_node[i].first_line || n_line > list_node[i].last_line){
+			if(n_line < (list_node[i].first_line - offset_line) || n_line > (list_node[i].last_line - offset_line)){
 				out_data << line << endl;
 			}
 			n_line++;
 		}
+		offset_line += list_node[i].last_line - list_node[i].first_line;
+		out_data.close();
+		in_data.close();
 	    remove(in_file);
 	    rename(out_file, in_file);
+	    //remove(out_file);
 	}
 }
-void remove_nodes_nk(const char* nk_file, string node_name="", string node_class="");
-void remove_nodes_nk(const char* nk_file, string node_name, string node_class){
-	if(node_name == "" && node_class == ""){
+//void remove_nodes_nk(const char* nk_file, string node_name="", bool node_class=true);
+void remove_nodes_nk(const char* nk_file, string node_name, bool node_class){
+	if(node_name == ""){
 		cerr<<"bad arguments values"<<endl;
 		return;
 	}
 	vector<PNode> list_node = parse_nk(nk_file);
 	vector<PNode> del_list;
-	if(node_name != "" && node_class == ""){
-		for(int i; i<int(list_node.size()); i++){
-			if(list_node[i].name == node_name){
+	for(int i = 0; i<int(list_node.size()); i++){
+		//if( node_class ) {
+			if(list_node[i].class_type.compare(node_name) == 0){
 				del_list.push_back(list_node[i]);
 			}
-		}
+		//}
+		//else{
+			//if(list_node[i].name == node_name){
+				//del_list.push_back(list_node[i]);
+			//}
+		//}
 	}
-	if(node_name == "" && node_class != ""){
-		for(int i; i<int(list_node.size()); i++){
-			if(list_node[i].class_type == node_class){
-				del_list.push_back(list_node[i]);
-			}
-		}
+	for(int i = 0; i<int(del_list.size()); i++){
+		cerr<<del_list[i].class_type;
 	}
-	if(node_name != "" && node_class != ""){
-		cerr<<"choose node_name or node_class"<<endl;
-		return;
-	}
-	copy_line(nk_file, "/tmp/del_node.nk.new", del_list);
+	copy_line(nk_file, "/u/colinl/del_node.nk.new", del_list);
 }
 
-int main() {
-	remove_nodes_nk("/u/colinl/testnk.nk", "", "Merge2");
+int main(int argc, char *argv[])
+{
+	remove_nodes_nk("/u/colinl/testnk.nk", string("Reformat"), true);
+	return 1;
 }
