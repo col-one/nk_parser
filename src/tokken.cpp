@@ -10,34 +10,52 @@
 #include <fstream>
 #include <algorithm>
 
+extern bool INGROUP;
+
 void find_node(Tokken& tokken, bool& isgroup, bool& search_name,
 				std::vector<PNode>& list_node, int& n_line)
 {
-	if(tokken.second_word == "{" && tokken.first_word != "Group"){
-		PNode node = PNode(tokken.first_word, n_line);
-		list_node.push_back(node);
-	}
-	else if(tokken.first_word == "}"){
-		if(list_node.empty()){
-			return;
+	if(!isgroup){
+		if(tokken.second_word == "{" && tokken.first_word != "Group"){
+			PNode node = PNode(tokken.first_word, n_line);
+			list_node.push_back(node);
+		}
+		else if(tokken.first_word == "}"){
+			if(list_node.empty()){
+				return;
+			}
+			else{
+				list_node[list_node.size()-1].last_line = n_line;
+			}
+		}
+		else if(tokken.first_word == "name"){
+			list_node[list_node.size()-1].name = tokken.second_word;
+		}
+		else if(tokken.first_word == "Group" && INGROUP == true){
+			PNode node = PNode(tokken.first_word, n_line);
+			list_node.push_back(node);
+			isgroup = true;
+			search_name = true;
 		}
 		else{
-			list_node[list_node.size()-1].last_line = n_line;
+			return;
 		}
 	}
-	else if(tokken.first_word == "name"){
-		list_node[list_node.size()-1].name = tokken.second_word;
-	}
-	else if(tokken.first_word == "Group"){
-		isgroup = true;
-		search_name = true;
-	}
-	else if(tokken.first_word == "end_group"){
-		isgroup = false;
-		search_name = false;
-	}
 	else{
-		return;
+		if(tokken.first_word == "name" && search_name == true){
+			list_node[list_node.size()-1].name = tokken.second_word;
+			search_name = false;
+			return;
+		}
+		else if(tokken.first_word == "end_group"){
+				isgroup = false;
+				search_name = false;
+				list_node[list_node.size()-1].last_line = n_line;
+				return;
+		}
+		else{
+			return;
+		}
 	}
 }
 
@@ -54,7 +72,7 @@ std::vector<PNode> parse_nk(const char* file){
 	std::string line;
 
 	bool isgroup = false;
-	bool search_name;
+	bool search_name = false;
 
 	std::string name;
 	std::vector<PNode> list_node;
@@ -122,9 +140,9 @@ void remove_nodes_nk(const char* nk_file, std::string node_name, bool node_class
 			}
 		}
 	}
-	for(int i = 0; i<int(del_list.size()); i++){
-		std::cerr<<del_list[i].class_type;
-	}
 	comment_line(nk_file, "/tmp/del_node.nk.new", del_list);
+	for(int i = 0; i<int(del_list.size()); i++){
+		std::cerr<<del_list[i].class_type<< "-" << del_list[i].name <<" -- commented" <<std::endl ;
+	}
 }
 
