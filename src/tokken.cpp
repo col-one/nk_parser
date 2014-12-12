@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <cstdlib>
 
 extern bool INGROUP;
 
@@ -17,6 +18,15 @@ void find_node(Tokken& tokken, bool& isgroup, bool& search_name,
 {
 	if(!isgroup){
 		if(tokken.second_word == "{" && tokken.first_word != "Group"){
+			if(!list_node.empty()){
+				if(!list_node[list_node.size()-1].last_line){
+					std::cerr<<"Warning ! " << list_node[list_node.size()-1].class_type
+							<< " is maybe broken"<<" line "<<list_node[list_node.size()-1].first_line
+							<<std::endl;
+					std::cerr<<"Abort"<<std::endl;
+					std::exit(0);
+				}
+			}
 			PNode node = PNode(tokken.first_word, n_line);
 			list_node.push_back(node);
 		}

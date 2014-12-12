@@ -4,7 +4,7 @@
 // Author      : 
 // Version     :
 // Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
+// Description : comment nk in C++, Ansi-style
 //============================================================================
 
 #include "tokken.h"
@@ -16,6 +16,13 @@ bool INGROUP;
 int main(int argc, char* argv[])
 {
 	INGROUP = true;
+
+	if(argc < 3){
+		std::cerr<<"Bad flags numbers, use a path file, a node or name, "
+				"use flags -node or -name and optional -ingroup"<<std::endl;
+		std::cerr<<"Abort"<<std::endl;
+		return 0;
+	}
 
 	std::string typen = "-node";
 	std::string typena = "-name";
@@ -34,10 +41,11 @@ int main(int argc, char* argv[])
 
 	struct stat results;
 	stat(argv[1], &results);
-	if (results.st_mode & S_IRUSR)
-	    std::cerr << "Read permission only"<<std::endl;
+	if (!(results.st_mode & S_IWUSR)){
+		std::cerr << "Read permission only"<<std::endl;
 		std::cerr<<"Abort"<<std::endl;
 		return 0;
+	}
 
 	if(argc > 4){
 		std::string argg = argv[4];
